@@ -3103,6 +3103,40 @@ details-disclosure > details {
       padding-bottom: var(--grid-desktop-vertical-spacing);
     }
   }
+
+  [dir='rtl'] .grid {
+    margin-left: 0;
+    margin-right: calc(-1 * var(--grid-mobile-horizontal-spacing));
+  }
+
+  [dir='rtl'] .grid__item {
+    padding-left: 0;
+    padding-right: var(--grid-mobile-horizontal-spacing);
+  }
+
+  @media screen and (min-width: 750px) {
+    [dir='rtl'] .grid {
+      margin-left: 0;
+      margin-right: calc(-1 * var(--grid-desktop-horizontal-spacing));
+    }
+
+    [dir='rtl'] .grid__item {
+      padding-left: 0;
+      padding-right: var(--grid-desktop-horizontal-spacing);
+    }
+  }
+
+  [dir='rtl'] .grid--gapless .grid__item {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  @media screen and (min-width: 749px) {
+    [dir='rtl'] .grid--peek .grid__item {
+      padding-left: 0;
+      padding-right: var(--grid-mobile-horizontal-spacing);
+    }
+  }
 }
 
 .font-body-bold {
