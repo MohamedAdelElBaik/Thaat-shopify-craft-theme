@@ -128,7 +128,10 @@
                   skip_styles: skip_card_product_styles,
                   section_id: section.id,
                   quick_add: section.settings.quick_add,
-                  product_view_context: 'collection'
+                  product_view_context: 'collection',
+                  title_alignment: section.settings.title_alignment,
+                  title_font_size: section.settings.title_font_size,
+                  price_alignment: section.settings.price_alignment
                 %}
               </li>
               {%- assign skip_card_product_styles = true -%}
@@ -158,7 +161,10 @@
                 media_aspect_ratio: section.settings.image_ratio,
                 image_shape: section.settings.image_shape,
                 lazy_load: false,
-                placeholder_image: placeholder_image
+                placeholder_image: placeholder_image,
+                title_alignment: section.settings.title_alignment,
+                title_font_size: section.settings.title_font_size,
+                price_alignment: section.settings.price_alignment
               %}
             </li>
           {%- endfor -%}
@@ -448,6 +454,61 @@
       "default": false,
       "label": "t:sections.featured-collection.settings.show_rating.label",
       "info": "t:sections.featured-collection.settings.show_rating.info"
+    },
+    {
+      "type": "header",
+      "content": "Product card styles"
+    },
+    {
+      "type": "select",
+      "id": "title_alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left",
+      "label": "Product title alignment"
+    },
+    {
+      "type": "range",
+      "id": "title_font_size",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Product title font size",
+      "info": "Set to 0 to use the default font size.",
+      "default": 0
+    },
+    {
+      "type": "select",
+      "id": "price_alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left",
+      "label": "Product price alignment"
     },
     {
       "type": "select",
