@@ -455,6 +455,152 @@
                       </volume-pricing>
                     {%- endif -%}
                   </div>
+                {%- when 'total_price' -%}
+                  {% liquid
+                    assign unit_price = product.selected_or_first_available_variant.price
+                    assign compare_at_price = product.selected_or_first_available_variant.compare_at_price
+                    assign selected_variant_id = product.selected_or_first_available_variant.id
+                    assign min_qty = product.selected_or_first_available_variant.quantity_rule.min | default: 1
+                    if settings.currency_code_enabled
+                      assign money_price = unit_price | times: min_qty | money_with_currency
+                      assign money_compare = compare_at_price | times: min_qty | money_with_currency
+                    else
+                      assign money_price = unit_price | times: min_qty | money
+                      assign money_compare = compare_at_price | times: min_qty | money
+                    endif
+                  %}
+                  <div
+                    class="product-form__total-price"
+                    id="TotalPriceBlock-{{ section.id }}"
+                    {{ block.shopify_attributes }}
+                    style="display: flex; justify-content: space-between; align-items: baseline; margin: 1.6rem 0; padding: 1.2rem 0; border-top: 0.1rem solid rgba(var(--color-foreground), 0.08); border-bottom: 0.1rem solid rgba(var(--color-foreground), 0.08);"
+                  >
+                    <span class="product-form__total-price-label caption-large">{{ block.settings.label }}</span>
+                    <div class="price price--large">
+                      <div class="price__container">
+                        <div class="price__regular">
+                          <span class="visually-hidden visually-hidden--inline">{{ 'products.product.price.regular_price' | t }}</span>
+                          <span class="price-item price-item--regular" id="TotalPrice-{{ section.id }}">
+                            {{ money_price }}
+                          </span>
+                        </div>
+                        <div class="price__sale">
+                          <span class="visually-hidden visually-hidden--inline">{{ 'products.product.price.regular_price' | t }}</span>
+                          <span>
+                            <s class="price-item price-item--regular" id="TotalComparePrice-{{ section.id }}">
+                              {% if compare_at_price > unit_price %}
+                                {{ money_compare }}
+                              {% endif %}
+                            </s>
+                          </span>
+                          <span class="visually-hidden visually-hidden--inline">{{ 'products.product.price.sale_price' | t }}</span>
+                          <span class="price-item price-item--sale price-item--last" id="TotalPrice-{{ section.id }}">
+                            {{ money_price }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <script>
+                    (function() {
+                      if (window.__totalPriceInitialized === '{{ section.id }}') return;
+                      window.__totalPriceInitialized = '{{ section.id }}';
+
+                      var sectionId = '{{ section.id }}';
+
+                      function formatMoney(cents, format) {
+                        if (typeof cents === 'string') cents = cents.replace(',', '.');
+                        var value = '';
+                        var placeholderRegex = /\{\{\s*(\w+)\s*\}\}/;
+                        var formatString = format || '${{amount}}';
+                        function formatWithDelimiters(number, precision, thousands, decimal) {
+                          precision = precision == null ? 2 : precision;
+                          thousands = thousands || ',';
+                          decimal = decimal || '.';
+                          if (isNaN(number) || number == null) return '0';
+                          number = (number / 100.0).toFixed(precision);
+                          var parts = number.split('.'),
+                            dollars = parts[0].replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1' + thousands),
+                            cents = parts[1] ? (decimal + parts[1]) : '';
+                          return dollars + cents;
+                        }
+                        var match = formatString.match(placeholderRegex);
+                        if (!match) return cents;
+                        switch (match[1]) {
+                          case 'amount':
+                            value = formatWithDelimiters(cents, 2);
+                            break;
+                          case 'amount_no_decimals':
+                            value = formatWithDelimiters(cents, 0);
+                            break;
+                          case 'amount_with_comma_separator':
+                            value = formatWithDelimiters(cents, 2, '.', ',');
+                            break;
+                          case 'amount_no_decimals_with_comma_separator':
+                            value = formatWithDelimiters(cents, 0, '.', ',');
+                            break;
+                          case 'amount_with_apostrophe_separator':
+                            value = formatWithDelimiters(cents, 2, '\'', '.');
+                            break;
+                        }
+                        return formatString.replace(placeholderRegex, value);
+                      }
+
+                      function updateTotal() {
+                        var totalBlock = document.getElementById('TotalPriceBlock-' + sectionId);
+                        if (!totalBlock) return;
+                        var qtyInput = document.getElementById('Quantity-' + sectionId);
+                        if (!qtyInput) return;
+
+                        var regularTotal = totalBlock.querySelector('.price__regular .price-item--regular');
+                        var saleTotal = totalBlock.querySelector('.price__sale .price-item--last');
+                        var compareTotal = totalBlock.querySelector('.price__sale .price-item--regular');
+                        var saleContainer = totalBlock.querySelector('.price__sale');
+
+                        var unitPriceData = totalBlock.querySelector('[data-unit-price]');
+                        var moneyFormatData = totalBlock.querySelector('[data-money-format]');
+                        if (!unitPriceData || !moneyFormatData) return;
+
+                        var unitPrice = parseInt(unitPriceData.getAttribute('data-unit-price')) || 0;
+                        var compareAtPrice = parseInt(unitPriceData.getAttribute('data-compare-at-price')) || 0;
+                        var moneyFormat = moneyFormatData.getAttribute('data-money-format') || '${{amount}}';
+                        var qty = parseInt(qtyInput.value) || 1;
+
+                        var total = unitPrice * qty;
+                        var totalFormatted = formatMoney(total, moneyFormat);
+
+                        if (compareAtPrice > unitPrice) {
+                          if (regularTotal) regularTotal.closest('.price__regular').style.display = 'none';
+                          if (saleContainer) saleContainer.style.display = 'flex';
+                          if (saleTotal) saleTotal.textContent = totalFormatted;
+                          if (compareTotal) compareTotal.textContent = formatMoney(compareAtPrice * qty, moneyFormat);
+                        } else {
+                          if (regularTotal) {
+                            regularTotal.closest('.price__regular').style.display = '';
+                            regularTotal.textContent = totalFormatted;
+                          }
+                          if (saleContainer) saleContainer.style.display = 'none';
+                        }
+                      }
+
+                      var qtyInput = document.getElementById('Quantity-' + sectionId);
+                      if (qtyInput) {
+                        qtyInput.addEventListener('input', updateTotal);
+                        qtyInput.addEventListener('change', updateTotal);
+                      }
+
+                      var productInfo = document.getElementById('ProductInfo-' + sectionId);
+                      if (productInfo) {
+                        var observer = new MutationObserver(function() {
+                          updateTotal();
+                        });
+                        observer.observe(productInfo, { childList: true, subtree: true });
+                      }
+                    })();
+                  </script>
+
+                  <span hidden data-unit-price="{{ unit_price }}" {% if compare_at_price > unit_price %}data-compare-at-price="{{ compare_at_price }}"{% endif %} data-money-format="{{ shop.money_format | escape }}"></span>
                 {%- when 'popup' -%}
                   <modal-opener
                     class="product-popup-modal__opener quick-add-hidden"
@@ -877,6 +1023,19 @@
       "type": "quantity_selector",
       "name": "t:sections.main-product.blocks.quantity_selector.name",
       "limit": 1
+    },
+    {
+      "type": "total_price",
+      "name": "Total price",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "Total"
+        }
+      ]
     },
     {
       "type": "variant_picker",
