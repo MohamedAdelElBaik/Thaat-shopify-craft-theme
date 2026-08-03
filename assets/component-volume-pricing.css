@@ -62,6 +62,11 @@ volume-pricing show-more-button {
   margin-left: 0;
 }
 
+[dir='rtl'] .price-per-item dd {
+  margin-left: 0;
+  margin-right: 0;
+}
+
 .price-per-item__container .variant-item__old-price,
 .price__regular .variant-item__old-price {
   color: rgba(var(--color-foreground), 0.75);

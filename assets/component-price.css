@@ -98,3 +98,21 @@
   margin-top: 0.2rem;
   color: rgba(var(--color-foreground), 0.7);
 }
+
+[dir='rtl'] .price .price-item {
+  margin: 0 0 0 1rem;
+}
+
+[dir='rtl'] .price__regular .price-item--regular {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+[dir='rtl'] .price--end {
+  text-align: left;
+}
+
+[dir='rtl'] .volume-pricing--sale-badge .price__badge-sale {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}

@@ -593,3 +593,27 @@
     clip-path: polygon(var(--shape--blob-5));
   }
 }
+
+[dir='rtl'] .card__content {
+  --text-alignment: right;
+}
+
+[dir='rtl'] .card .icon-wrap {
+  margin-left: 0;
+  margin-right: 0.8rem;
+}
+
+[dir='rtl'] .quick-add__submit {
+  padding: 0.8rem;
+}
+
+[dir='rtl'] .card__badge {
+  left: auto;
+  right: 1rem;
+  text-align: right;
+}
+
+[dir='rtl'] .card__information-volume-pricing-note--button {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}

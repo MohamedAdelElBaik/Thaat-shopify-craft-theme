@@ -85,3 +85,11 @@
   transform: rotate(-45deg);
   transform-origin: left;
 }
+
+[dir='rtl'] .swatch-input__input:disabled + .swatch-input__label > .swatch::after,
+[dir='rtl'] .swatch-input__input.visually-disabled + .swatch-input__label > .swatch::after {
+  left: auto;
+  right: 0;
+  transform: rotate(45deg);
+  transform-origin: right;
+}

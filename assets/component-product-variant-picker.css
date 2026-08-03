@@ -150,3 +150,21 @@ variant-selects {
   }
 }
 /* End custom styles for Swatch display type */
+
+[dir='rtl'] .product-form__input--dropdown .dropdown-swatch + select {
+  padding-left: 0;
+  padding-right: calc(2.4rem + var(--swatch-input--size));
+}
+
+[dir='rtl'] .product-form__input--dropdown .dropdown-swatch {
+  left: auto;
+  right: 1.6rem;
+}
+
+[dir='rtl'] .product-form__input--pill input[type='radio'] + label {
+  margin: 0.7rem 0 0.2rem 0.5rem;
+}
+
+[dir='rtl'] .product-form__input--swatch .swatch-input__input + .swatch-input__label {
+  margin: 0.7rem 0 0.2rem 1.2rem;
+}
