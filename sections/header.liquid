@@ -36,7 +36,7 @@
     }
   {%- endif -%}
 
-  @media screen and (min-width: 990px) {
+     @media screen and (min-width: 990px) {
     .header {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -59,6 +59,34 @@
       justify-self: end;
     }
   }
+
+  {%- if request.page_type == 'index' -%}
+    .section-header {
+      position: absolute;
+      background: transparent;
+    }
+
+    .header-wrapper {
+      background: transparent;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 5000;
+    }
+  {%- else -%}
+    .section-header,
+    .header-wrapper {
+      position: relative !important;
+      background: inherit !important;
+    }
+
+    .section-header .header,
+    .header-wrapper .header {
+      position: relative !important;
+      background: inherit !important;
+    }
+  {%- endif -%}
 
   .menu-drawer-container {
     display: flex;
@@ -146,7 +174,7 @@
   {% if header_tag == 'sticky-header' %}
     data-sticky-type="{{ section.settings.sticky_header_type }}"
   {% endif %}
-  class="header-wrapper color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
+  class="header-wrapper color-{% if request.page_type == 'index' %}{{ section.settings.overlay_color_scheme }}{% else %}{{ section.settings.color_scheme }}{% endif %} gradient{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
 >
   {%- liquid
     assign social_links = false
@@ -600,7 +628,15 @@
     {
       "type": "color_scheme",
       "id": "color_scheme",
-      "label": "t:sections.all.colors.label",
+      "label": "Normal header color",
+      "info": "Used on all pages except the home page.",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color_scheme",
+      "id": "overlay_color_scheme",
+      "label": "Overlay header color",
+      "info": "Used on the home page when the header overlays the hero section.",
       "default": "scheme-1"
     },
     {
