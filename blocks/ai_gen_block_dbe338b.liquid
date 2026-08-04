@@ -1,0 +1,804 @@
+{% doc %}
+  @prompt
+    create videos section this section take title (can customize size)
+    and take until 5 videos not all required (can add all or not and can show/hide video), the video aspectect is 2h 1w, the videos is hieght is adapt to the first video with max 600px h and 300px w on desktob and 300px h and 150w on mobile
+    the section show the full of 5 videos on desktop and start from center, show 2.25 videos on mobile and can swipe and start from the first of the line
+    
+    note: image or video, add slider on both web and mob if , make it slide well when dir="rtl", on video it should open shopify video picker like on the image, add functionality to auto play (none -  first video - all), if the video stoped not make it blur and show play button on it, add margina/padding to section, space between videos make the play button and arrow  background transparent, add way to controll play button size make the aspect of video 16 to 9, sorry aspect 9:16
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-videos-section-{{ ai_gen_id }} {
+    width: 100%;
+    padding: {{ block.settings.section_padding_top }}px 0 {{ block.settings.section_padding_bottom }}px;
+    overflow: hidden;
+    display: block;
+  }
+
+  .ai-videos-container-{{ ai_gen_id }} {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .ai-videos-title-{{ ai_gen_id }} {
+    text-align: center;
+    margin: 0 0 40px;
+    font-size: {{ block.settings.title_size }}px;
+    color: {{ block.settings.title_color }};
+  }
+
+  .ai-videos-slider-container-{{ ai_gen_id }} {
+    position: relative;
+  }
+
+  .ai-videos-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-videos-track-{{ ai_gen_id }} {
+    display: flex;
+    gap: {{ block.settings.video_spacing }}px;
+    transition: transform 0.3s ease;
+  }
+
+  .ai-video-item-{{ ai_gen_id }} {
+    flex-shrink: 0;
+    position: relative;
+    background-color: #f4f4f4;
+    border-radius: {{ block.settings.video_border_radius }}px;
+    overflow: hidden;
+  }
+
+  .ai-video-item-{{ ai_gen_id }} img,
+  .ai-video-item-{{ ai_gen_id }} video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .ai-video-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f4f4f4;
+  }
+
+  .ai-video-placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.3;
+  }
+
+  .ai-video-play-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  .ai-video-item-{{ ai_gen_id }}.paused .ai-video-play-overlay-{{ ai_gen_id }} {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }} {
+    width: {{ block.settings.play_button_size }}px;
+    height: {{ block.settings.play_button_size }}px;
+    background-color: transparent;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }}:hover {
+    transform: scale(1.1);
+  }
+
+  .ai-video-play-button-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    fill: {{ block.settings.play_button_color }};
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+
+  .ai-slider-nav-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: opacity 0.3s ease;
+  }
+
+  .ai-slider-nav-{{ ai_gen_id }}:hover {
+    opacity: 0.8;
+  }
+
+  .ai-slider-nav-{{ ai_gen_id }}:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .ai-slider-nav-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    fill: {{ block.settings.arrow_color }};
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+
+  .ai-slider-nav-prev-{{ ai_gen_id }} {
+    left: -20px;
+  }
+
+  .ai-slider-nav-next-{{ ai_gen_id }} {
+    right: -20px;
+  }
+
+  [dir="rtl"] .ai-slider-nav-prev-{{ ai_gen_id }} {
+    left: auto;
+    right: -20px;
+  }
+
+  [dir="rtl"] .ai-slider-nav-next-{{ ai_gen_id }} {
+    right: auto;
+    left: -20px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-videos-track-{{ ai_gen_id }} {
+      justify-content: flex-start;
+    }
+
+    .ai-video-item-{{ ai_gen_id }} {
+      width: 300px;
+      max-width: 300px;
+      height: calc(300px * 16 / 9);
+      max-height: 600px;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-videos-wrapper-{{ ai_gen_id }} {
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .ai-videos-wrapper-{{ ai_gen_id }}::-webkit-scrollbar {
+      display: none;
+    }
+
+    .ai-videos-track-{{ ai_gen_id }} {
+      justify-content: flex-start;
+    }
+
+    .ai-video-item-{{ ai_gen_id }} {
+      width: 150px;
+      max-width: 150px;
+      height: calc(150px * 16 / 9);
+      max-height: 300px;
+    }
+
+    .ai-video-play-button-{{ ai_gen_id }} {
+      width: calc({{ block.settings.play_button_size }}px * 0.6);
+      height: calc({{ block.settings.play_button_size }}px * 0.6);
+    }
+
+    .ai-slider-nav-prev-{{ ai_gen_id }} {
+      left: 10px;
+    }
+
+    .ai-slider-nav-next-{{ ai_gen_id }} {
+      right: 10px;
+    }
+
+    [dir="rtl"] .ai-slider-nav-prev-{{ ai_gen_id }} {
+      left: auto;
+      right: 10px;
+    }
+
+    [dir="rtl"] .ai-slider-nav-next-{{ ai_gen_id }} {
+      right: auto;
+      left: 10px;
+    }
+  }
+{% endstyle %}
+
+<video-gallery-{{ ai_gen_id }} class="ai-videos-section-{{ ai_gen_id }}" data-autoplay="{{ block.settings.autoplay_mode }}" {{ block.shopify_attributes }}>
+  <div class="ai-videos-container-{{ ai_gen_id }}">
+    {% if block.settings.title != blank %}
+      <h2 class="ai-videos-title-{{ ai_gen_id }}">{{ block.settings.title }}</h2>
+    {% endif %}
+
+    <div class="ai-videos-slider-container-{{ ai_gen_id }}">
+      <button
+        class="ai-slider-nav-{{ ai_gen_id }} ai-slider-nav-prev-{{ ai_gen_id }}"
+        aria-label="Previous video"
+        data-nav="prev"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+        </svg>
+      </button>
+
+      <div class="ai-videos-wrapper-{{ ai_gen_id }}">
+        <div class="ai-videos-track-{{ ai_gen_id }}">
+          {% for i in (1..5) %}
+            {% liquid
+              assign video_enabled_key = 'video_' | append: i | append: '_enabled'
+              assign video_type_key = 'video_' | append: i | append: '_type'
+              assign video_file_key = 'video_' | append: i | append: '_file'
+              assign image_key = 'video_' | append: i | append: '_image'
+
+              assign video_enabled = block.settings[video_enabled_key]
+              assign video_type = block.settings[video_type_key]
+              assign video_file = block.settings[video_file_key]
+              assign image = block.settings[image_key]
+            %}
+
+            {% if video_enabled %}
+              <div class="ai-video-item-{{ ai_gen_id }} paused" data-video-index="{{ i }}">
+                {% if video_type == 'video' %}
+                  {% if video_file != blank %}
+                    {{
+                      video_file
+                      | video_tag:
+                        loop: true,
+                        muted: true,
+                        controls: false,
+                        playsinline: true
+                    }}
+                    <div class="ai-video-play-overlay-{{ ai_gen_id }}">
+                      <button class="ai-video-play-button-{{ ai_gen_id }}" aria-label="Play video">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </button>
+                    </div>
+                  {% else %}
+                    <div class="ai-video-placeholder-{{ ai_gen_id }}">
+                      {{ 'image' | placeholder_svg_tag }}
+                    </div>
+                  {% endif %}
+                {% else %}
+                  {% if image != blank %}
+                    <img
+                      src="{{ image | image_url: width: 600 }}"
+                      alt="{{ image.alt | escape }}"
+                      loading="lazy"
+                      width="300"
+                      height="533"
+                    >
+                  {% else %}
+                    <div class="ai-video-placeholder-{{ ai_gen_id }}">
+                      {{ 'image' | placeholder_svg_tag }}
+                    </div>
+                  {% endif %}
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <button
+        class="ai-slider-nav-{{ ai_gen_id }} ai-slider-nav-next-{{ ai_gen_id }}"
+        aria-label="Next video"
+        data-nav="next"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</video-gallery-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class VideoGallery{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.wrapper = this.querySelector('.ai-videos-wrapper-{{ ai_gen_id }}');
+        this.track = this.querySelector('.ai-videos-track-{{ ai_gen_id }}');
+        this.items = this.querySelectorAll('.ai-video-item-{{ ai_gen_id }}');
+        this.prevBtn = this.querySelector('[data-nav="prev"]');
+        this.nextBtn = this.querySelector('[data-nav="next"]');
+        this.currentIndex = 0;
+        this.isRTL = document.dir === 'rtl' || document.documentElement.dir === 'rtl';
+        this.autoplayMode = this.dataset.autoplay || 'none';
+      }
+
+      connectedCallback() {
+        this.adjustHeights();
+        this.setupSlider();
+        this.setupVideoControls();
+        this.handleAutoplay();
+        window.addEventListener('resize', () => {
+          this.adjustHeights();
+          this.updateSliderPosition();
+        });
+      }
+
+      adjustHeights() {
+        if (this.items.length === 0) return;
+
+        const isMobile = window.innerWidth < 750;
+        const maxHeight = isMobile ? 300 : 600;
+        const aspectRatio = 9 / 16;
+
+        let calculatedWidth = isMobile ? 150 : 300;
+        let calculatedHeight = calculatedWidth / aspectRatio;
+
+        if (calculatedHeight > maxHeight) {
+          calculatedHeight = maxHeight;
+          calculatedWidth = calculatedHeight * aspectRatio;
+        }
+
+        this.items.forEach(item => {
+          item.style.width = calculatedWidth + 'px';
+          item.style.height = calculatedHeight + 'px';
+        });
+      }
+
+      setupSlider() {
+        this.prevBtn.addEventListener('click', () => this.slide('prev'));
+        this.nextBtn.addEventListener('click', () => this.slide('next'));
+        this.updateNavButtons();
+      }
+
+      setupVideoControls() {
+        this.items.forEach(item => {
+          const video = item.querySelector('video');
+          const playOverlay = item.querySelector('.ai-video-play-overlay-{{ ai_gen_id }}');
+          
+          if (video && playOverlay) {
+            playOverlay.addEventListener('click', () => {
+              if (video.paused) {
+                video.play();
+                item.classList.remove('paused');
+              } else {
+                video.pause();
+                item.classList.add('paused');
+              }
+            });
+
+            video.addEventListener('play', () => {
+              item.classList.remove('paused');
+            });
+
+            video.addEventListener('pause', () => {
+              item.classList.add('paused');
+            });
+
+            video.addEventListener('ended', () => {
+              item.classList.add('paused');
+            });
+          }
+        });
+      }
+
+      handleAutoplay() {
+        const videos = this.querySelectorAll('video');
+        
+        if (this.autoplayMode === 'none') {
+          videos.forEach(video => {
+            video.pause();
+            video.removeAttribute('autoplay');
+          });
+          this.items.forEach(item => {
+            if (item.querySelector('video')) {
+              item.classList.add('paused');
+            }
+          });
+        } else if (this.autoplayMode === 'first') {
+          videos.forEach((video, index) => {
+            if (index === 0) {
+              video.setAttribute('autoplay', '');
+              video.play().then(() => {
+                video.closest('.ai-video-item-{{ ai_gen_id }}').classList.remove('paused');
+              }).catch(() => {
+                video.closest('.ai-video-item-{{ ai_gen_id }}').classList.add('paused');
+              });
+            } else {
+              video.pause();
+              video.removeAttribute('autoplay');
+              video.closest('.ai-video-item-{{ ai_gen_id }}').classList.add('paused');
+            }
+          });
+        } else if (this.autoplayMode === 'all') {
+          videos.forEach(video => {
+            video.setAttribute('autoplay', '');
+            video.play().then(() => {
+              video.closest('.ai-video-item-{{ ai_gen_id }}').classList.remove('paused');
+            }).catch(() => {
+              video.closest('.ai-video-item-{{ ai_gen_id }}').classList.add('paused');
+            });
+          });
+        }
+      }
+
+      slide(direction) {
+        if (this.items.length === 0) return;
+
+        const itemWidth = this.items[0].offsetWidth;
+        const gap = parseInt('{{ block.settings.video_spacing }}') || 20;
+
+        if (direction === 'next' && this.currentIndex < this.items.length - 1) {
+          this.currentIndex++;
+        } else if (direction === 'prev' && this.currentIndex > 0) {
+          this.currentIndex--;
+        }
+
+        this.updateSliderPosition();
+      }
+
+      updateSliderPosition() {
+        if (this.items.length === 0) return;
+
+        const itemWidth = this.items[0].offsetWidth;
+        const gap = parseInt('{{ block.settings.video_spacing }}') || 20;
+        const slideAmount = itemWidth + gap;
+        let offset = -this.currentIndex * slideAmount;
+
+        if (this.isRTL) {
+          offset = this.currentIndex * slideAmount;
+        }
+
+        this.track.style.transform = `translateX(${offset}px)`;
+        this.updateNavButtons();
+      }
+
+      updateNavButtons() {
+        this.prevBtn.disabled = this.currentIndex === 0;
+        this.nextBtn.disabled = this.currentIndex >= this.items.length - 1;
+      }
+    }
+
+    customElements.define('video-gallery-{{ ai_gen_id }}', VideoGallery{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Videos gallery",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "section_padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "section_padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Title"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Our Videos"
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "Title size",
+      "min": 16,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title color",
+      "default": "#252525"
+    },
+    {
+      "type": "header",
+      "content": "Autoplay"
+    },
+    {
+      "type": "select",
+      "id": "autoplay_mode",
+      "label": "Autoplay mode",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "first",
+          "label": "First video only"
+        },
+        {
+          "value": "all",
+          "label": "All videos"
+        }
+      ],
+      "default": "all"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "range",
+      "id": "video_spacing",
+      "label": "Space between videos",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "video_border_radius",
+      "label": "Video border radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "play_button_size",
+      "label": "Play button size",
+      "min": 30,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "color",
+      "id": "play_button_color",
+      "label": "Play button color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "arrow_color",
+      "label": "Arrow color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Video 1"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_1_enabled",
+      "label": "Show video 1",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "video_1_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "video",
+          "label": "Video"
+        },
+        {
+          "value": "image",
+          "label": "Image"
+        }
+      ],
+      "default": "video"
+    },
+    {
+      "type": "video",
+      "id": "video_1_file",
+      "label": "Video file"
+    },
+    {
+      "type": "image_picker",
+      "id": "video_1_image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Video 2"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_2_enabled",
+      "label": "Show video 2",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "video_2_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "video",
+          "label": "Video"
+        },
+        {
+          "value": "image",
+          "label": "Image"
+        }
+      ],
+      "default": "video"
+    },
+    {
+      "type": "video",
+      "id": "video_2_file",
+      "label": "Video file"
+    },
+    {
+      "type": "image_picker",
+      "id": "video_2_image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Video 3"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_3_enabled",
+      "label": "Show video 3",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "video_3_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "video",
+          "label": "Video"
+        },
+        {
+          "value": "image",
+          "label": "Image"
+        }
+      ],
+      "default": "video"
+    },
+    {
+      "type": "video",
+      "id": "video_3_file",
+      "label": "Video file"
+    },
+    {
+      "type": "image_picker",
+      "id": "video_3_image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Video 4"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_4_enabled",
+      "label": "Show video 4",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "video_4_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "video",
+          "label": "Video"
+        },
+        {
+          "value": "image",
+          "label": "Image"
+        }
+      ],
+      "default": "video"
+    },
+    {
+      "type": "video",
+      "id": "video_4_file",
+      "label": "Video file"
+    },
+    {
+      "type": "image_picker",
+      "id": "video_4_image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Video 5"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_5_enabled",
+      "label": "Show video 5",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "video_5_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "video",
+          "label": "Video"
+        },
+        {
+          "value": "image",
+          "label": "Image"
+        }
+      ],
+      "default": "video"
+    },
+    {
+      "type": "video",
+      "id": "video_5_file",
+      "label": "Video file"
+    },
+    {
+      "type": "image_picker",
+      "id": "video_5_image",
+      "label": "Image"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Videos gallery"
+    }
+  ]
+}
+{% endschema %}

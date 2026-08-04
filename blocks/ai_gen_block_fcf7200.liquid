@@ -1,0 +1,347 @@
+{% doc %}
+  @prompt
+    create section that take images (until 10 images and can show/hide each image).
+    
+    the images style is, show in one row if there is enough space, if not go to the next row, and it should be on the center of the page.
+    
+    for images: can customize size of images and border radious
+    for section: can customize padding, margin and background color , the image should be on this ratio 45w, 30h, all what I need so when I change the wiedth the hight should change 
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% assign image_height = block.settings.image_width | times: 30 | divided_by: 45 %}
+
+{% style %}
+  .ai-image-gallery-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    padding: {{ block.settings.padding_top }}px {{ block.settings.padding_horizontal }}px {{ block.settings.padding_bottom }}px {{ block.settings.padding_horizontal }}px;
+    margin: {{ block.settings.margin_top }}px 0 {{ block.settings.margin_bottom }}px 0;
+    background-color: {{ block.settings.background_color }};
+  }
+
+  .ai-image-gallery-container-{{ ai_gen_id }} {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: {{ block.settings.image_spacing }}px;
+    max-width: 100%;
+  }
+
+  .ai-image-gallery-item-{{ ai_gen_id }} {
+    flex-shrink: 0;
+  }
+
+  .ai-image-gallery-item-{{ ai_gen_id }} img {
+    width: {{ block.settings.image_width }}px;
+    height: {{ image_height }}px;
+    object-fit: cover;
+    border-radius: {{ block.settings.border_radius }}px;
+    display: block;
+  }
+
+  .ai-image-gallery-placeholder-{{ ai_gen_id }} {
+    width: {{ block.settings.image_width }}px;
+    height: {{ image_height }}px;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: {{ block.settings.border_radius }}px;
+  }
+
+  .ai-image-gallery-placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.3;
+  }
+{% endstyle %}
+
+<div class="ai-image-gallery-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-image-gallery-container-{{ ai_gen_id }}">
+    {% for i in (1..10) %}
+      {% liquid
+        assign image_key = 'image_' | append: i
+        assign show_key = 'show_image_' | append: i
+        assign image = block.settings[image_key]
+        assign show_image = block.settings[show_key]
+      %}
+
+      {% if show_image %}
+        <div class="ai-image-gallery-item-{{ ai_gen_id }}">
+          {% if image %}
+            <img
+              src="{{ image | image_url: width: 800 }}"
+              alt="{{ image.alt | escape }}"
+              loading="lazy"
+              width="{{ block.settings.image_width }}"
+              height="{{ image_height }}"
+            >
+          {% else %}
+            <div class="ai-image-gallery-placeholder-{{ ai_gen_id }}">
+              {{ 'image' | placeholder_svg_tag }}
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Image gallery",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section style"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding horizontal",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Margin top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Margin bottom",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Image style"
+    },
+    {
+      "type": "range",
+      "id": "image_width",
+      "min": 45,
+      "max": 450,
+      "step": 5,
+      "unit": "px",
+      "label": "Image width",
+      "default": 225
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "image_spacing",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "label": "Spacing between images",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Image 1"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_1",
+      "label": "Show image 1",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "image_1",
+      "label": "Image 1"
+    },
+    {
+      "type": "header",
+      "content": "Image 2"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_2",
+      "label": "Show image 2",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "image_2",
+      "label": "Image 2"
+    },
+    {
+      "type": "header",
+      "content": "Image 3"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_3",
+      "label": "Show image 3",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "image_3",
+      "label": "Image 3"
+    },
+    {
+      "type": "header",
+      "content": "Image 4"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_4",
+      "label": "Show image 4",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "image_4",
+      "label": "Image 4"
+    },
+    {
+      "type": "header",
+      "content": "Image 5"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_5",
+      "label": "Show image 5",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "image_5",
+      "label": "Image 5"
+    },
+    {
+      "type": "header",
+      "content": "Image 6"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_6",
+      "label": "Show image 6",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "image_6",
+      "label": "Image 6"
+    },
+    {
+      "type": "header",
+      "content": "Image 7"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_7",
+      "label": "Show image 7",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "image_7",
+      "label": "Image 7"
+    },
+    {
+      "type": "header",
+      "content": "Image 8"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_8",
+      "label": "Show image 8",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "image_8",
+      "label": "Image 8"
+    },
+    {
+      "type": "header",
+      "content": "Image 9"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_9",
+      "label": "Show image 9",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "image_9",
+      "label": "Image 9"
+    },
+    {
+      "type": "header",
+      "content": "Image 10"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_10",
+      "label": "Show image 10",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "image_10",
+      "label": "Image 10"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image gallery"
+    }
+  ]
+}
+{% endschema %}

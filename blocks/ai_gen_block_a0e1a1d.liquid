@@ -1,0 +1,548 @@
+{% doc %}
+  @prompt
+    create section that have 6 collabsable row and can show/hide any one of them
+    
+    add top and button borders for rows the, the row should take full width of the screen on mobile and max width of 950px on desktop and show on the center 
+    
+    the section should take icon and title and description and show collabse arrow on the end of the line, the description should be rich text
+    
+    can customize section bading, margin.row padding and margin. row title size and color and section background, enhance the ui to support rtl direction
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-collapsible-section-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    background-color: {{ block.settings.section_background }};
+    padding-top: {{ block.settings.section_padding_top }}px;
+    padding-bottom: {{ block.settings.section_padding_bottom }}px;
+    margin-top: {{ block.settings.section_margin_top }}px;
+    margin-bottom: {{ block.settings.section_margin_bottom }}px;
+  }
+
+  .ai-collapsible-container-{{ ai_gen_id }} {
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-collapsible-container-{{ ai_gen_id }} {
+      max-width: 950px;
+    }
+  }
+
+  .ai-collapsible-row-{{ ai_gen_id }} {
+    border-top: {{ block.settings.row_border_thickness }}px solid {{ block.settings.row_border_color }};
+    border-bottom: {{ block.settings.row_border_thickness }}px solid {{ block.settings.row_border_color }};
+    margin-top: -{{ block.settings.row_border_thickness }}px;
+    padding-top: {{ block.settings.row_padding_top }}px;
+    padding-bottom: {{ block.settings.row_padding_bottom }}px;
+    padding-left: {{ block.settings.row_padding_horizontal }}px;
+    padding-right: {{ block.settings.row_padding_horizontal }}px;
+    margin-left: {{ block.settings.row_margin_horizontal }}px;
+    margin-right: {{ block.settings.row_margin_horizontal }}px;
+  }
+
+  .ai-collapsible-header-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .ai-collapsible-header-left-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .ai-collapsible-icon-{{ ai_gen_id }} {
+    flex-shrink: 0;
+    width: {{ block.settings.icon_size }}px;
+    height: {{ block.settings.icon_size }}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-collapsible-icon-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .ai-collapsible-title-{{ ai_gen_id }} {
+    font-size: {{ block.settings.row_title_size }}px;
+    color: {{ block.settings.row_title_color }};
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .ai-collapsible-arrow-{{ ai_gen_id }} {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+    color: {{ block.settings.row_title_color }};
+  }
+
+  .ai-collapsible-arrow-{{ ai_gen_id }}.active {
+    transform: rotate(180deg);
+  }
+
+  .ai-collapsible-content-{{ ai_gen_id }} {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .ai-collapsible-content-{{ ai_gen_id }}.active {
+    max-height: 2000px;
+  }
+
+  .ai-collapsible-description-{{ ai_gen_id }} {
+    padding-top: 16px;
+    color: {{ block.settings.row_title_color }};
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  [dir="ltr"] .ai-collapsible-description-{{ ai_gen_id }} {
+    padding-left: {{ block.settings.icon_size | plus: 12 }}px;
+  }
+
+  [dir="rtl"] .ai-collapsible-description-{{ ai_gen_id }} {
+    padding-right: {{ block.settings.icon_size | plus: 12 }}px;
+  }
+
+  html:not([dir]) .ai-collapsible-description-{{ ai_gen_id }} {
+    padding-left: {{ block.settings.icon_size | plus: 12 }}px;
+  }
+{% endstyle %}
+
+<collapsible-section-{{ ai_gen_id }}
+  class="ai-collapsible-section-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-collapsible-container-{{ ai_gen_id }}">
+    {% for i in (1..6) %}
+      {% liquid
+        assign enabled_key = 'row_' | append: i | append: '_enabled'
+        assign icon_key = 'row_' | append: i | append: '_icon'
+        assign title_key = 'row_' | append: i | append: '_title'
+        assign description_key = 'row_' | append: i | append: '_description'
+
+        assign enabled = block.settings[enabled_key]
+        assign icon = block.settings[icon_key]
+        assign title = block.settings[title_key]
+        assign description = block.settings[description_key]
+      %}
+
+      {% if enabled %}
+        <div class="ai-collapsible-row-{{ ai_gen_id }}" data-row="{{ i }}">
+          <div class="ai-collapsible-header-{{ ai_gen_id }}" data-header="{{ i }}">
+            <div class="ai-collapsible-header-left-{{ ai_gen_id }}">
+              {% if icon %}
+                <div class="ai-collapsible-icon-{{ ai_gen_id }}">
+                  <img
+                    src="{{ icon | image_url: width: 100 }}"
+                    alt="{{ title | escape }}"
+                    loading="lazy"
+                    width="100"
+                    height="100"
+                  >
+                </div>
+              {% endif %}
+              <h3 class="ai-collapsible-title-{{ ai_gen_id }}">{{ title }}</h3>
+            </div>
+            <div class="ai-collapsible-arrow-{{ ai_gen_id }}" data-arrow="{{ i }}">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div class="ai-collapsible-content-{{ ai_gen_id }}" data-content="{{ i }}">
+            <div class="ai-collapsible-description-{{ ai_gen_id }}">
+              {{ description }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</collapsible-section-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class CollapsibleSection{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.headers = this.querySelectorAll('.ai-collapsible-header-{{ ai_gen_id }}');
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        this.headers.forEach((header) => {
+          header.addEventListener('click', () => {
+            const rowId = header.getAttribute('data-header');
+            const content = this.querySelector(`.ai-collapsible-content-{{ ai_gen_id }}[data-content="${rowId}"]`);
+            const arrow = this.querySelector(`.ai-collapsible-arrow-{{ ai_gen_id }}[data-arrow="${rowId}"]`);
+
+            const isActive = content.classList.contains('active');
+
+            content.classList.toggle('active');
+            arrow.classList.toggle('active');
+
+            if (!isActive) {
+              header.setAttribute('aria-expanded', 'true');
+            } else {
+              header.setAttribute('aria-expanded', 'false');
+            }
+          });
+
+          header.setAttribute('role', 'button');
+          header.setAttribute('aria-expanded', 'false');
+          header.setAttribute('tabindex', '0');
+
+          header.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              header.click();
+            }
+          });
+        });
+      }
+    }
+
+    customElements.define('collapsible-section-{{ ai_gen_id }}', CollapsibleSection{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Collapsible rows",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section style"
+    },
+    {
+      "type": "color",
+      "id": "section_background",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "section_padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "section_padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Margin top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Margin bottom",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Row style"
+    },
+    {
+      "type": "range",
+      "id": "row_border_thickness",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "label": "Border thickness",
+      "default": 1
+    },
+    {
+      "type": "color",
+      "id": "row_border_color",
+      "label": "Border color",
+      "default": "#e0e0e0"
+    },
+    {
+      "type": "range",
+      "id": "row_padding_top",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "row_padding_bottom",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "row_padding_horizontal",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding horizontal",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "row_margin_horizontal",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Margin horizontal",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "row_title_size",
+      "min": 12,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Title size",
+      "default": 18
+    },
+    {
+      "type": "color",
+      "id": "row_title_color",
+      "label": "Title color",
+      "default": "#252525"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "min": 16,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "label": "Icon size",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Row 1"
+    },
+    {
+      "type": "checkbox",
+      "id": "row_1_enabled",
+      "label": "Show row 1",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "row_1_icon",
+      "label": "Icon"
+    },
+    {
+      "type": "text",
+      "id": "row_1_title",
+      "label": "Title",
+      "default": "Collapsible row 1"
+    },
+    {
+      "type": "richtext",
+      "id": "row_1_description",
+      "label": "Description",
+      "default": "<p>Add details about this collapsible row.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Row 2"
+    },
+    {
+      "type": "checkbox",
+      "id": "row_2_enabled",
+      "label": "Show row 2",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "row_2_icon",
+      "label": "Icon"
+    },
+    {
+      "type": "text",
+      "id": "row_2_title",
+      "label": "Title",
+      "default": "Collapsible row 2"
+    },
+    {
+      "type": "richtext",
+      "id": "row_2_description",
+      "label": "Description",
+      "default": "<p>Add details about this collapsible row.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Row 3"
+    },
+    {
+      "type": "checkbox",
+      "id": "row_3_enabled",
+      "label": "Show row 3",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "row_3_icon",
+      "label": "Icon"
+    },
+    {
+      "type": "text",
+      "id": "row_3_title",
+      "label": "Title",
+      "default": "Collapsible row 3"
+    },
+    {
+      "type": "richtext",
+      "id": "row_3_description",
+      "label": "Description",
+      "default": "<p>Add details about this collapsible row.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Row 4"
+    },
+    {
+      "type": "checkbox",
+      "id": "row_4_enabled",
+      "label": "Show row 4",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "row_4_icon",
+      "label": "Icon"
+    },
+    {
+      "type": "text",
+      "id": "row_4_title",
+      "label": "Title",
+      "default": "Collapsible row 4"
+    },
+    {
+      "type": "richtext",
+      "id": "row_4_description",
+      "label": "Description",
+      "default": "<p>Add details about this collapsible row.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Row 5"
+    },
+    {
+      "type": "checkbox",
+      "id": "row_5_enabled",
+      "label": "Show row 5",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "row_5_icon",
+      "label": "Icon"
+    },
+    {
+      "type": "text",
+      "id": "row_5_title",
+      "label": "Title",
+      "default": "Collapsible row 5"
+    },
+    {
+      "type": "richtext",
+      "id": "row_5_description",
+      "label": "Description",
+      "default": "<p>Add details about this collapsible row.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Row 6"
+    },
+    {
+      "type": "checkbox",
+      "id": "row_6_enabled",
+      "label": "Show row 6",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "row_6_icon",
+      "label": "Icon"
+    },
+    {
+      "type": "text",
+      "id": "row_6_title",
+      "label": "Title",
+      "default": "Collapsible row 6"
+    },
+    {
+      "type": "richtext",
+      "id": "row_6_description",
+      "label": "Description",
+      "default": "<p>Add details about this collapsible row.</p>"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collapsible rows"
+    }
+  ]
+}
+{% endschema %}
