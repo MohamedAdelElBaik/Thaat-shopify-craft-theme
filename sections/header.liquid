@@ -21,7 +21,7 @@
     justify-self: start;
     margin-left: -1.2rem;
   }
-
+ 
   {%- if section.settings.sticky_header_type == 'reduce-logo-size' -%}
     .scrolled-past-header .header__heading-logo-wrapper {
       width: 75%;
@@ -57,6 +57,16 @@
     .header__icons {
       grid-area: icons;
       justify-self: end;
+    }
+  }
+
+  .header__heading-logo {
+    max-width: {{ section.settings.logo_width_mobile }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .header__heading-logo {
+      max-width: {{ section.settings.logo_width_desktop }}px;
     }
   }
 
@@ -204,20 +214,27 @@
         <h1 class="header__heading">
       {%- endif -%}
       <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
-        {%- if settings.logo != blank -%}
+        {%- liquid
+          if request.page_type == 'index'
+            assign header_logo = section.settings.logo_overlay | default: settings.logo
+          else
+            assign header_logo = section.settings.logo_normal | default: settings.logo
+          endif
+        -%}
+        {%- if header_logo != blank -%}
           <div class="header__heading-logo-wrapper">
-            {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
-            {%- assign logo_height = settings.logo_width | divided_by: settings.logo.aspect_ratio -%}
-            {% capture sizes %}(max-width: {{ settings.logo_width | times: 2 }}px) 50vw, {{ settings.logo_width }}px{% endcapture %}
-            {% capture widths %}{{ settings.logo_width }}, {{ settings.logo_width | times: 1.5 | round }}, {{ settings.logo_width | times: 2 }}{% endcapture %}
+            {%- assign logo_alt = header_logo.alt | default: shop.name | escape -%}
+            {%- assign logo_height = section.settings.logo_width_desktop | divided_by: header_logo.aspect_ratio -%}
+            {% capture sizes %}(max-width: {{ section.settings.logo_width_desktop | times: 2 }}px) 50vw, {{ section.settings.logo_width_desktop }}px{% endcapture %}
+            {% capture widths %}{{ section.settings.logo_width_desktop }}, {{ section.settings.logo_width_desktop | times: 1.5 | round }}, {{ section.settings.logo_width_desktop | times: 2 }}{% endcapture %}
             {{
-              settings.logo
+              header_logo
               | image_url: width: 600
               | image_tag:
                 class: 'header__heading-logo motion-reduce',
                 widths: widths,
                 height: logo_height,
-                width: settings.logo_width,
+                width: section.settings.logo_width_desktop,
                 alt: logo_alt,
                 sizes: sizes,
                 preload: true
@@ -235,9 +252,9 @@
     {%- liquid
       if section.settings.menu != blank
         if section.settings.menu_type_desktop == 'dropdown'
-          render 'header-dropdown-menu'
+          render 'header-dropdown-menu', menu_color: active_menu_color
         elsif section.settings.menu_type_desktop != 'drawer'
-          render 'header-mega-menu'
+          render 'header-mega-menu', menu_color: active_menu_color
         endif
       endif
     %}
@@ -247,20 +264,27 @@
         <h1 class="header__heading">
       {%- endif -%}
       <a href="{{ routes.root_url }}" class="header__heading-link link link--text focus-inset">
-        {%- if settings.logo != blank -%}
+        {%- liquid
+          if request.page_type == 'index'
+            assign header_logo = section.settings.logo_overlay | default: settings.logo
+          else
+            assign header_logo = section.settings.logo_normal | default: settings.logo
+          endif
+        -%}
+        {%- if header_logo != blank -%}
           <div class="header__heading-logo-wrapper">
-            {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
-            {%- assign logo_height = settings.logo_width | divided_by: settings.logo.aspect_ratio -%}
-            {% capture sizes %}(min-width: 750px) {{ settings.logo_width }}px, 50vw{% endcapture %}
-            {% capture widths %}{{ settings.logo_width }}, {{ settings.logo_width | times: 1.5 | round }}, {{ settings.logo_width | times: 2 }}{% endcapture %}
+            {%- assign logo_alt = header_logo.alt | default: shop.name | escape -%}
+            {%- assign logo_height = section.settings.logo_width_desktop | divided_by: header_logo.aspect_ratio -%}
+            {% capture sizes %}(min-width: 750px) {{ section.settings.logo_width_desktop }}px, 50vw{% endcapture %}
+            {% capture widths %}{{ section.settings.logo_width_desktop }}, {{ section.settings.logo_width_desktop | times: 1.5 | round }}, {{ section.settings.logo_width_desktop | times: 2 }}{% endcapture %}
             {{
-              settings.logo
+              header_logo
               | image_url: width: 600
               | image_tag:
                 class: 'header__heading-logo',
                 widths: widths,
                 height: logo_height,
-                width: settings.logo_width,
+                width: section.settings.logo_width_desktop,
                 alt: logo_alt,
                 sizes: sizes,
                 preload: true
@@ -642,8 +666,50 @@
     {
       "type": "color_scheme",
       "id": "menu_color_scheme",
-      "label": "t:sections.header.settings.menu_color_scheme.label",
+      "label": "Normal menu color",
+      "info": "Used on all pages except the home page.",
       "default": "scheme-1"
+    },
+    {
+      "type": "color_scheme",
+      "id": "overlay_menu_color_scheme",
+      "label": "Overlay menu color",
+      "info": "Used on the home page when the header overlays the hero section.",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Custom logo"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_normal",
+      "label": "Normal logo"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo_overlay",
+      "label": "Overlay logo (home page)"
+    },
+    {
+      "type": "range",
+      "id": "logo_width_desktop",
+      "min": 50,
+      "max": 300,
+      "step": 5,
+      "unit": "px",
+      "label": "Desktop logo width",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "logo_width_mobile",
+      "min": 50,
+      "max": 200,
+      "step": 5,
+      "unit": "px",
+      "label": "Mobile logo width",
+      "default": 80
     },
     {
       "type": "header",
